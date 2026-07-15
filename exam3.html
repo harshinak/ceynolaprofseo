@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEYNOLA · Business Management System</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+    <style>
+        /* ============ SYSTEM ARCHITECTURE SPECIFIC DESIGN TOKENS ============ */
+        :root {
+            --bark-950: #1B120C;
+            --bark-900: #23170F;
+            --bark-800: #3D2B1F;
+            --bark-700: #5C4033;
+            --quill-600: #A07855D9;
+            --quill-500: #C29B74;
+            --quill-400: #D4B996;
+            --quill-200: #EADBC8;
+            --powder-100: #F8F5F0;
+            --powder-50: #FEFCF9;
+            
+            --bg-app: var(--powder-100);
+            --bg-card: var(--powder-50);
+            --sidebar-bg: var(--bark-950);
+            --sidebar-text: var(--quill-400);
+            --sidebar-active: var(--powder-50);
+            --text-main: var(--bark-950);
+            --text-muted: #70655B;
+            --border-color: #E6DFD5;
+            --accent-gold: #B88E2F;
+            --success: #3E6B52;
+            --danger: #9E4733;
+            --warning: #C48F32;
+            
+            --font-serif: 'Fraunces', serif;
+            --font-sans: 'Manrope', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+            
+            --shadow-sm: 0 2px 8px rgba(27,18,12,0.04);
+            --shadow-md: 0 8px 24px rgba(27,18,12,0.08);
+        }
+
+        [data-theme='dark'] {
+            --bg-app: #120C08;
+            --bg-card: #1B120C;
+            --sidebar-bg: #0A0705;
+            --sidebar-text: #A69788;
+            --sidebar-active: #EADBC8;
+            --text-main: #F8F5F0;
+            --text-muted: #A69788;
+            --border-color: #2D2017;
+            --accent-gold: #D4B996;
+            --success: #528F6D;
+            --danger: #BD5B45;
+            --warning: #E0AB4C;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        * {
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: var(--font-sans);
+        }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            transition: background-color 0.25s ease, color 0.25s ease;
+            overflow-x: hidden;
+        }
+
+        /* ================= AUTH UTILITY INTERFACE ================= */
+        .login-wrapper {
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            background: radial-gradient(circle at center, var(--bark-900) 0%, var(--bark-950) 100%);
+            padding: 20px;
+        }
+        .login-card {
+            background: #23170F;
+            border: 1px solid rgba(194,155,116,0.15);
+            padding: 48px 40px; 
+            width: 100%; 
+            max-width: 420px;
+            border-radius: 16px; 
+            box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+        .login-card label { color: var(--quill-400); }
+        .login-card input {
+            background: #1B120C; 
+            border-color: #3D2B1F; 
+            color: #FEFCF9;
+        }
+        .brand-mark {
+            font-family: var(--font-serif); 
+            font-size: 42px; 
+            color: var(--quill-500);
+            margin-bottom: 8px; 
+            line-height: 1;
+        }
+        .brand-title {
+            font-family: var(--font-serif); 
+            font-weight: 400; 
+            letter-spacing: 4px;
+            color: var(--powder-50); 
+            font-size: 26px;
+        }
+        .brand-subtitle {
+            font-size: 12px; 
+            color: var(--quill-400); 
+            text-transform: uppercase;
+            letter-spacing: 1.5px; 
+            margin-bottom: 32px;
+        }
+
+        /* ================= SYSTEM LAYOUT DESIGN ================= */
+        .layout-container {
+            display: flex; 
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 260px; 
+            background-color: var(--sidebar-bg); 
+            color: var(--sidebar-text);
+            display: flex; 
+            flex-direction: column; 
+            flex-shrink: 0;
+            border-right: 1px solid rgba(194,155,116,0.1);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 100;
+        }
+        .sidebar-header {
+            padding: 32px 24px; 
+            border-bottom: 1px solid rgba(194,155,116,0.08);
+        }
+        .brand-group { display: flex; align-items: center; gap: 12px; }
+        .brand-icon {
+            font-family: var(--font-serif); 
+            font-size: 28px; 
+            color: var(--quill-500);
+            font-weight: 700;
+        }
+        .sidebar-brand-name {
+            font-family: var(--font-serif); 
+            font-weight: 600; 
+            font-size: 18px;
+            color: #FFF; 
+            letter-spacing: 1px;
+        }
+        .sidebar-brand-sub {
+            font-size: 11px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            color: var(--quill-600);
+        }
+        .sidebar-nav {
+            padding: 24px 12px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; 
+            flex-grow: 1;
+        }
+        .nav-item {
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px 16px;
+            color: var(--sidebar-text); 
+            text-decoration: none; 
+            border-radius: 8px;
+            font-size: 14px; 
+            font-weight: 500; 
+            transition: all 0.2s ease;
+        }
+        .nav-item span { font-size: 16px; opacity: 0.8; }
+        .nav-item:hover {
+            background-color: rgba(194,155,116,0.08); 
+            color: #FFF;
+        }
+        .nav-item.active {
+            background-color: var(--quill-500); 
+            color: var(--bark-950); 
+            font-weight: 600;
+        }
+        .sidebar-footer {
+            padding: 20px; 
+            border-top: 1px solid rgba(194,155,116,0.08);
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+        }
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .avatar {
+            width: 36px; 
+            height: 36px; 
+            border-radius: 50%; 
+            background: var(--quill-400);
+            color: var(--bark-950); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            font-weight: 700; 
+            font-size: 14px;
+        }
+        .user-info { display: flex; flex-direction: column; }
+        .user-name { font-size: 13px; font-weight: 600; color: #FFF; }
+        .user-role { font-size: 11px; color: var(--quill-600); }
+        .btn-logout {
+            background: none; 
+            border: none; 
+            color: var(--quill-600); 
+            font-size: 12px;
+            cursor: pointer; 
+            font-weight: 500;
+        }
+        .btn-logout:hover { color: var(--danger); }
+
+        /* ================= INTERFACE MAIN LAYOUT FRAMEWORK ================= */
+        .main-content {
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            min-width: 0;
+        }
+        .topbar {
+            height: 80px; 
+            padding: 0 40px; 
+            display: flex; 
+            align-items: center;
+            justify-content: space-between; 
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-card); 
+            position: sticky; 
+            top: 0; 
+            z-index: 90;
+        }
+        .page-title { font-family: var(--font-serif); font-weight: 500; font-size: 24px; }
+        .live-clock { font-family: var(--font-mono); font-size: 14px; color: var(--text-muted); margin-right: 20px; }
+        .theme-toggle {
+            background: none; 
+            border: 1px solid var(--border-color); 
+            width: 36px; 
+            height: 36px;
+            border-radius: 50%; 
+            cursor: pointer; 
+            font-size: 16px; 
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+        .theme-toggle:hover { background-color: rgba(0,0,0,0.03); }
+
+        .content-body { padding: 40px; flex-grow: 1; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ================= STATISTICAL ANALYTICS METRIC CARDS ================= */
+        .metrics-grid {
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .metric-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px; 
+            padding: 24px; 
+            box-shadow: var(--shadow-sm);
+        }
+        .metric-header {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .metric-title {
+            font-size: 13px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+            font-weight: 600; 
+            color: var(--text-muted);
+        }
+        .metric-icon { font-size: 18px; opacity: 0.7; }
+        .metric-value {
+            font-family: var(--font-mono); 
+            font-size: 28px; 
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .metric-sub { font-size: 12px; color: var(--text-muted); }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        /* 💡 BUG FIX: Changed from min-height to fixed height + flexbox column layout */
+        .chart-container-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            height: 380px; 
+            display: flex;
+            flex-direction: column;
+        }
+        .chart-container-card h3 {
+            font-family: var(--font-serif);
+            font-weight: 500;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        /* 💡 BUG FIX: Added stable relative container to prevent ChartJS infinite layout breakdowns */
+        .chart-canvas-wrapper {
+            position: relative;
+            flex-grow: 1;
+            min-height: 0;
+            width: 100%;
+        }
+
+        /* ================= DATA GRID INTERFACE COMPONENTS ================= */
+        .section-header {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 20px; 
+            gap: 16px; 
+            flex-wrap: wrap;
+        }
+        .section-header h2 { font-family: var(--font-serif); font-weight: 500; font-size: 20px; }
+        .action-group { display: flex; align-items: center; gap: 12px; }
+
+        .search-input {
+            padding: 10px 16px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px;
+            font-size: 14px; 
+            width: 280px; 
+            background-color: var(--bg-card);
+            color: var(--text-main);
+        }
+        .filter-select {
+            padding: 10px 16px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px;
+            font-size: 14px; 
+            background-color: var(--bg-card); 
+            color: var(--text-main);
+        }
+        .search-input:focus, .filter-select:focus {
+            outline: none; 
+            border-color: var(--quill-500);
+        }
+
+        .table-responsive {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px; 
+            overflow: hidden; 
+            box-shadow: var(--shadow-sm);
+        }
+        .table {
+            width: 100%; 
+            border-collapse: collapse; 
+            text-align: left; 
+            font-size: 14px;
+        }
+        .table th {
+            background-color: rgba(194,155,116,0.05);
+            padding: 16px 24px; 
+            font-weight: 600; 
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase; 
+            font-size: 11px; 
+            letter-spacing: 0.5px;
+        }
+        .table td {
+            padding: 16px 24px; 
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main); 
+            vertical-align: middle;
+        }
+        .table tbody tr:last-child td { border-bottom: none; }
+        .table tbody tr:hover td { background-color: rgba(194,155,116,0.02); }
+
+        .sku-tag {
+            font-family: var(--font-mono); 
+            font-size: 12px;
+            background-color: rgba(0,0,0,0.04); 
+            padding: 2px 6px; 
+            border-radius: 4px;
+        }
+        [data-theme='dark'] .sku-tag { background-color: rgba(255,255,255,0.06); }
+
+        /* ================= COLOR SEMANTICS BADGES ================= */
+        .badge {
+            display: inline-flex; 
+            align-items: center; 
+            padding: 4px 10px;
+            border-radius: 50px; 
+            font-size: 12px; 
+            font-weight: 600;
+        }
+        .badge-success { background-color: rgba(62,107,82,0.1); color: var(--success); }
+        .badge-danger { background-color: rgba(158,71,51,0.1); color: var(--danger); }
+        .badge-warning { background-color: rgba(196,143,50,0.1); color: var(--warning); }
+        .badge-info { background-color: rgba(160,120,85,0.1); color: var(--text-main); }
+
+        .text-success { color: var(--success) !important; }
+        .text-danger { color: var(--danger) !important; }
+        .text-warning { color: var(--warning) !important; }
+        .text-muted { color: var(--text-muted); }
+        .text-right { text-align: right; }
+        .font-mono { font-family: var(--font-mono); }
+
+        /* ================= CORE SYSTEM ACTIONS CONTROLS ================= */
+        .btn {
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+            padding: 10px 20px; 
+            font-size: 14px; 
+            font-weight: 600;
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            border: 1px solid transparent;
+        }
+        .btn-primary {
+            background-color: var(--bark-900); 
+            color: var(--powder-50);
+        }
+        .btn-primary:hover { background-color: var(--bark-800); }
+        [data-theme='dark'] .btn-primary {
+            background-color: var(--quill-500); 
+            color: var(--bark-950);
+        }
+        [data-theme='dark'] .btn-primary:hover { background-color: var(--quill-400); }
+
+        .btn-secondary {
+            background-color: transparent; 
+            border-color: var(--border-color);
+            color: var(--text-main);
+        }
+        .btn-secondary:hover { background-color: rgba(0,0,0,0.02); }
+        [data-theme='dark'] .btn-secondary:hover { background-color: rgba(255,255,255,0.02); }
+
+        .btn-icon {
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 16px;
+            padding: 4px; 
+            border-radius: 4px; 
+            margin-left: 8px;
+            color: var(--text-muted);
+        }
+        .btn-icon:hover { color: var(--text-main); background-color: rgba(0,0,0,0.04); }
+
+        /* ================= PAGINATION LAYOUT COMPONENTS ================= */
+        .pagination-wrap {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-top: 20px; 
+            font-size: 13px; 
+            color: var(--text-muted);
+        }
+        .pagination-pages { display: flex; gap: 6px; }
+        .page-node {
+            width: 32px; 
+            height: 32px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            cursor: pointer;
+            background-color: var(--bg-card); 
+            color: var(--text-main);
+        }
+        .page-node.active {
+            background-color: var(--quill-500); 
+            color: var(--bark-950);
+            border-color: var(--quill-500); 
+            font-weight: 600;
+        }
+
+        /* ================= DYNAMIC SYSTEM MODAL MARKUP ================= */
+        .modal-backdrop {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh;
+            background-color: rgba(27,18,11,0.4); 
+            backdrop-filter: blur(4px);
+            z-index: 1000; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            opacity: 0; 
+            pointer-events: none; 
+            transition: opacity 0.3s ease;
+        }
+        .modal-backdrop.show { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            width: 100%; 
+            max-width: 540px; 
+            border-radius: 16px; 
+            padding: 40px;
+            box-shadow: var(--shadow-md); 
+            position: relative;
+            transform: translateY(-20px); 
+            transition: transform 0.3s ease;
+        }
+        .modal-backdrop.show .modal-card { transform: translateY(0); }
+        .modal-title { font-family: var(--font-serif); font-weight: 500; margin-bottom: 24px; font-size: 22px; }
+        .modal-close-btn {
+            position: absolute; 
+            top: 24px; 
+            right: 24px; 
+            background: none;
+            border: none; 
+            font-size: 18px; 
+            cursor: pointer; 
+            color: var(--text-muted);
+        }
+
+        /* ================= FORM ARCHITECTURE SCHEMAS ================= */
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block; 
+            font-size: 12px; 
+            font-weight: 700; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px; 
+            margin-bottom: 8px; 
+            color: var(--text-main);
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; 
+            padding: 12px 16px; 
+            border: 1px solid var(--border-color);
+            border-radius: 8px; 
+            background-color: var(--bg-app); 
+            color: var(--text-main);
+            font-size: 14px;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; 
+            border-color: var(--quill-500);
+        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+        /* ================= TOAST NOTIFICATION STYLING ================= */
+        .toast-container {
+            position: fixed; 
+            bottom: 40px; 
+            right: 40px; 
+            z-index: 2000;
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px;
+        }
+        .toast {
+            background-color: var(--bark-950); 
+            color: var(--powder-50);
+            padding: 14px 24px; 
+            border-radius: 8px; 
+            font-size: 13px; 
+            font-weight: 600;
+            box-shadow: var(--shadow-md); 
+            animation: slideIn 0.2s forwards;
+            border-left: 4px solid var(--quill-500);
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width: 1024px) {
+            .charts-row { grid-template-columns: 1fr; }
+            .sidebar { width: 80px; }
+            .sidebar-brand-name, .sidebar-brand-sub, .user-info, .btn-logout { display: none; }
+            .nav-item span { margin-right: 0; font-size: 20px; }
+            .nav-item { justify-content: center; padding: 12px; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <div id="login-screen" class="login-wrapper">
+        <div class="login-card">
+            <div class="brand-mark">〜</div>
+            <h1 class="brand-title">CEYNOLA</h1>
+            <p class="brand-subtitle">Export House Administration Login</p>
+            <div class="form-group" style="margin-top: 24px;">
+                <label>Username</label>
+                <input type="text" value="admin@ceynola.com" id="login-email" readonly>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" value="••••••••" id="login-pass" readonly>
+            </div>
+            <button class="btn btn-primary" style="width: 100%; margin-top: 12px;" onclick="App.auth.login()">Access Dashboard</button>
+        </div>
+    </div>
+
+    <div id="app" style="display: none;">
+        <div class="layout-container">
+            
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <div class="brand-group">
+                        <span class="brand-icon">〜</span>
+                        <div>
+                            <h2 class="sidebar-brand-name" id="display-sidebar-title">CEYNOLA</h2>
+                            <p class="sidebar-brand-sub">Premium Cinnamon</p>
+                        </div>
+                    </div>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="#" class="nav-item active" data-tab="dashboard" onclick="App.ui.switchTab('dashboard')"><span>📊</span> Dashboard</a>
+                    <a href="#" class="nav-item" data-tab="products" onclick="App.ui.switchTab('products')"><span>📦</span> Products</a>
+                    <a href="#" class="nav-item" data-tab="orders" onclick="App.ui.switchTab('orders')"><span>📜</span> Orders</a>
+                    <a href="#" class="nav-item" data-tab="inventory" onclick="App.ui.switchTab('inventory')"><span>🏭</span> Inventory</a>
+                    <a href="#" class="nav-item" data-tab="customers" onclick="App.ui.switchTab('customers')"><span>👥</span> Customers</a>
+                    <a href="#" class="nav-item" data-tab="suppliers" onclick="App.ui.switchTab('suppliers')"><span>🚜</span> Suppliers</a>
+                    <a href="#" class="nav-item" data-tab="employees" onclick="App.ui.switchTab('employees')"><span>👔</span> Employees</a>
+                    <a href="#" class="nav-item" data-tab="expenses" onclick="App.ui.switchTab('expenses')"><span>📉</span> Expenses</a>
+                    <a href="#" class="nav-item" data-tab="settings" onclick="App.ui.switchTab('settings')"><span>⚙️</span> Settings</a>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="user-profile">
+                        <div class="avatar">Y</div>
+                        <div class="user-info">
+                            <span class="user-name">Yashith harshana</span>
+                            <span class="user-role">Administrator</span>
+                        </div>
+                    </div>
+                    <button class="btn-logout" onclick="App.auth.logout()" title="Logout">Logout ↗</button>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                
+                <header class="topbar">
+                    <div class="topbar-left">
+                        <h1 class="page-title" id="page-title-heading">Dashboard Overview</h1>
+                    </div>
+                    <div class="topbar-right">
+                        <span id="live-clock" class="live-clock">00:00:00 PM</span>
+                        <button class="theme-toggle" id="theme-knob" onclick="App.ui.toggleTheme()">☾</button>
+                    </div>
+                </header>
+
+                <div class="content-body">
+                    
+                    <section id="tab-dashboard" class="tab-content active">
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-header"><span class="metric-title">Total Revenue</span><span class="metric-icon">💰</span></div>
+                                <div class="metric-value" id="stat-revenue">--</div>
+                                <div class="metric-sub text-success">Gross order earnings</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-header"><span class="metric-title">Total Expenses</span><span class="metric-icon">📉</span></div>
+                                <div class="metric-value" id="stat-expenses">--</div>
+                                <div class="metric-sub text-danger">Operational spend</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-header"><span class="metric-title">Net Profit</span><span class="metric-icon">🏛️</span></div>
+                                <div class="metric-value" id="stat-profit">--</div>
+                                <div class="metric-sub text-success">Bottom-line net margin</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-header"><span class="metric-title">Total Orders</span><span class="metric-icon">📜</span></div>
+                                <div class="metric-value" id="stat-orders">--</div>
+                                <div class="metric-sub" id="stat-orders-sub">--</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-header"><span class="metric-title">Stock Valuation</span><span class="metric-icon">📦</span></div>
+                                <div class="metric-value" id="stat-inventory-val">--</div>
+                                <div class="metric-sub text-warning" id="stat-low-stock-count">0 items low stock</div>
+                            </div>
+                        </div>
+
+                        <!-- 💡 BUG FIX: Wrapped canvas tags inside chart-canvas-wrapper -->
+                        <div class="charts-row">
+                            <div class="chart-container-card">
+                                <h3>Financial Performance Trend</h3>
+                                <div class="chart-canvas-wrapper">
+                                    <canvas id="chart-financials"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-container-card">
+                                <h3>Product Category Distribution</h3>
+                                <div class="chart-canvas-wrapper">
+                                    <canvas id="chart-categories"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 32px;">
+                            <div class="section-header">
+                                <h2>Recent Orders Queue</h2>
+                                <button class="btn btn-secondary" onclick="App.ui.switchTab('orders')">View Complete Registry</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Date</th>
+                                            <th>Customer</th>
+                                            <th>Total Value</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbl-recent-orders"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Other HTML sections remain exactly the same -->
+                    <section id="tab-products" class="tab-content">
+                        <div class="section-header">
+                            <div class="action-group">
+                                <input type="text" class="search-input" id="search-products" placeholder="Search product name, SKU..." oninput="App.dataGrid.handleSearch('products')">
+                                <select class="filter-select" id="filter-products-cat" onchange="App.dataGrid.handleFilter('products')">
+                                    <option value="">All Categories</option>
+                                    <option value="Alba Cinnamon">Alba Cinnamon</option>
+                                    <option value="Continental Cinnamon">Continental Cinnamon</option>
+                                    <option value="Mexican Cinnamon">Mexican Cinnamon</option>
+                                    <option value="Cinnamon Oil">Cinnamon Oil</option>
+                                    <option value="Ground Powder">Ground Powder</option>
+                                </select>
+                            </div>
+                            <div class="action-group">
+                                <button class="btn btn-secondary" onclick="App.dataGrid.exportCSV('products')">Export CSV</button>
+                                <button class="btn btn-primary" onclick="App.modals.openAdd('products')">+ Add Product</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('products', 'sku')">SKU ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('products', 'name')">Product Title ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('products', 'category')">Category ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('products', 'costPrice')">Cost Price ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('products', 'sellingPrice')">Selling Price ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('products', 'stock')">Stock Level ↕</th>
+                                        <th>Status</th>
+                                        <th class="text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl-products"></tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-wrap" id="pager-products"></div>
+                    </section>
+
+                    <section id="tab-orders" class="tab-content">
+                        <div class="section-header">
+                            <div class="action-group">
+                                <input type="text" class="search-input" id="search-orders" placeholder="Search by customer name..." oninput="App.dataGrid.handleSearch('orders')">
+                                <select class="filter-select" id="filter-orders-status" onchange="App.dataGrid.handleFilter('orders')">
+                                    <option value="">All Order Statuses</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Processing">Processing</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="action-group">
+                                <button class="btn btn-secondary" onclick="App.dataGrid.exportCSV('orders')">Export CSV</button>
+                                <button class="btn btn-primary" onclick="App.modals.openAdd('orders')">+ Log New Order</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('orders', 'id')">ID ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('orders', 'date')">Order Date ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('orders', 'customer')">Customer ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('orders', 'total')">Order Value ↕</th>
+                                        <th>Status</th>
+                                        <th class="text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl-orders"></tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-wrap" id="pager-orders"></div>
+                    </section>
+
+                    <section id="tab-inventory" class="tab-content">
+                        <div class="section-header">
+                            <div class="action-group">
+                                <input type="text" class="search-input" id="search-inventory" placeholder="Search by product item..." oninput="App.dataGrid.handleSearch('inventory')">
+                                <select class="filter-select" id="filter-inventory-status" onchange="App.dataGrid.handleFilter('inventory')">
+                                    <option value="">All Stock Levels</option>
+                                    <option value="Low">Low Stock Alerts</option>
+                                    <option value="Normal">Healthy Levels</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>SKU</th>
+                                        <th>Item Name</th>
+                                        <th>Location / Whse</th>
+                                        <th>Current Count</th>
+                                        <th>Min Threshold</th>
+                                        <th>Status Condition</th>
+                                        <th class="text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl-inventory"></tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-wrap" id="pager-inventory"></div>
+                    </section>
+
+                    <section id="tab-customers" class="tab-content">
+                        <div class="section-header">
+                            <input type="text" class="search-input" id="search-customers" placeholder="Search clients name, email..." oninput="App.dataGrid.handleSearch('customers')">
+                            <div class="action-group">
+                                <button class="btn btn-secondary" onclick="App.dataGrid.exportCSV('customers')">Export CSV</button>
+                                <button class="btn btn-primary" onclick="App.modals.openAdd('customers')">+ Register Client</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('customers', 'name')">Client Name ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('customers', 'email')">Email Address ↕</th>
+                                        <th>Phone Line</th>
+                                        <th>Global Destination Address</th>
+                                        <th class="text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl-customers"></tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-wrap" id="pager-customers"></div>
+                    </section>
+
+                    <section id="tab-suppliers" class="tab-content">
+                        <div class="section-header">
+                            <input type="text" class="search-input" id="search-suppliers" placeholder="Search plantations name..." oninput="App.dataGrid.handleSearch('suppliers')">
+                            <button class="btn btn-primary" onclick="App.modals.openAdd('suppliers')">+ Add Supplier Plantation</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('suppliers', 'name')">Supplier Estate ↕</th>
+                                        <th>Contact Person</th>
+                                        <th>Phone Line</th>
+                                        <th>Raw Crop Material Supplied</th>
+                                        <th class="text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl-suppliers"></tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-wrap" id="pager-suppliers"></div>
+                    </section>
+
+                    <section id="tab-employees" class="tab-content">
+                        <div class="section-header">
+                            <input type="text" class="search-input" id="search-employees" placeholder="Search operators..." oninput="App.dataGrid.handleSearch('employees')">
+                            <button class="btn btn-primary" onclick="App.modals.openAdd('employees')">+ Add Staff Member</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('employees', 'name')">Employee Name ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('employees', 'role')">Operational Role ↕</th>
+                                        <th>Department Division</th>
+                                        <th>Active Salary Structure</th>
+                                        <th class="text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl-employees"></tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-wrap" id="pager-employees"></div>
+                    </section>
+
+                    <section id="tab-expenses" class="tab-content">
+                        <div class="section-header">
+                            <div class="action-group">
+                                <input type="text" class="search-input" id="search-expenses" placeholder="Search expense logs..." oninput="App.dataGrid.handleSearch('expenses')">
+                                <select class="filter-select" id="filter-expenses-cat" onchange="App.dataGrid.handleFilter('expenses')">
+                                    <option value="">All Cost Categories</option>
+                                    <option value="Logistics Shipping">Logistics Shipping</option>
+                                    <option value="Raw Materials Procurement">Raw Materials Procurement</option>
+                                    <option value="Facility Overhead & Utilities">Facility Overhead & Utilities</option>
+                                    <option value="Customs Tariffs & Duties">Customs Tariffs & Duties</option>
+                                    <option value="Marketing Branding">Marketing Branding</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="App.modals.openAdd('expenses')">+ Record Expense Entry</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('expenses', 'date')">Date Logged ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('expenses', 'description')">Line Description ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('expenses', 'category')">Cost Ledger Category ↕</th>
+                                        <th style="cursor:pointer" onclick="App.dataGrid.handleSort('expenses', 'amount')">Amount Expended ↕</th>
+                                        <th class="text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl-expenses"></tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-wrap" id="pager-expenses"></div>
+                    </section>
+
+                    <section id="tab-settings" class="tab-content">
+                        <div class="card" style="max-width: 700px; background: var(--bg-card); padding: 32px; border-radius: 12px; border: 1px solid var(--border-color);">
+                            <h2 style="font-family:'Fraunces', serif; margin-bottom: 24px;">System Parameters Settings</h2>
+                            
+                            <form id="form-settings" onsubmit="App.settings.saveForm(event)">
+                                <div class="form-group">
+                                    <label>Corporate Legal Entity Business Name</label>
+                                    <input type="text" id="set-biz-name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Display Identifier Logo Short Code</label>
+                                    <input type="text" id="set-biz-logo" required>
+                                </div>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label>Active Base System Currency</label>
+                                        <select id="set-currency">
+                                            <option value="USD">USD ($)</option>
+                                            <option value="LKR">LKR (Rs.)</option>
+                                            <option value="EUR">EUR (€)</option>
+                                            <option value="GBP">GBP (£)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Standard Export/Sales Tax Rate (%)</label>
+                                        <input type="number" step="0.01" id="set-tax" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Primary Language Localization Interface</label>
+                                    <select id="set-lang">
+                                        <option value="en">English (UK/Global Standards)</option>
+                                        <option value="si">Sinhala (Local Operations)</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="margin-top:12px;">Commit Configuration Values</button>
+                            </form>
+
+                            <hr style="margin: 32px 0; border: 0; border-top: 1px solid var(--border-color);">
+
+                            <h3 style="font-family:'Fraunces', serif; margin-bottom: 16px;">System Data Backups & Maintenance</h3>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                                Export the complete dynamic client local storage dataset matrix structure down into an offline-portable JSON flat-file format representation, or re-ingest an archived snapshot.
+                            </p>
+                            <div class="action-group">
+                                <button class="btn btn-secondary" onclick="App.storage.backupSystemJSON()">Download Full Archive Backup JSON</button>
+                                <button class="btn btn-secondary" onclick="document.getElementById('file-restore-uploader').click()">Restore Database Image...</button>
+                                <input type="file" id="file-restore-uploader" style="display:none" accept=".json" onchange="App.storage.restoreSystemJSON(event)">
+                                <button class="btn btn-secondary" style="color:var(--text-danger);" onclick="App.storage.wipeAllDataReset()">Wipe Factory Reset</button>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="modal-container">
+        <div class="modal-card">
+            <button class="modal-close-btn" onclick="App.modals.close()">✕</button>
+            <h2 class="modal-title" id="modal-title-txt">Form Action</h2>
+            <div id="modal-body-content"></div>
+        </div>
+    </div>
+
+    <div id="toast-wrap" class="toast-container"></div>
+
+    <script>
+        const App = (() => {
+            
+            // ================= STATIC ARCHIVAL FALLBACK MOCK DATASETS =================
+            const _MOCK_PRODUCTS = [
+                { id: "p1", sku: "CY-ALB-25", name: "Alba Ceylon Cinnamon Quills (Premium)", category: "Alba Cinnamon", costPrice: 18.50, sellingPrice: 34.00, stock: 420, status: "Active" },
+                { id: "p2", sku: "CY-C5P-50", name: "Continental C5 Quills Grade-X", category: "Continental Cinnamon", costPrice: 14.00, sellingPrice: 26.50, stock: 15, status: "Active" },
+                { id: "p3", sku: "CY-BLD-01", name: "Organic Bark Leaf Distiled Extract", category: "Cinnamon Oil", costPrice: 45.00, sellingPrice: 89.00, stock: 85, status: "Active" },
+                { id: "p4", sku: "CY-FPM-10", name: "Fine Powdered Bark Mesh 80", category: "Ground Powder", costPrice: 6.20, sellingPrice: 12.80, stock: 1200, status: "Active" },
+                { id: "p5", sku: "CY-MEX-99", name: "Mexican Export Format Standard Quills", category: "Mexican Cinnamon", costPrice: 11.00, sellingPrice: 21.00, stock: 0, status: "Out of Stock" }
+            ];
+
+            const _MOCK_ORDERS = [
+                { id: "ORD-2026-001", date: "2026-07-10", customer: "Verdant Spices GmbH", total: 4250.00, status: "Completed" },
+                { id: "ORD-2026-002", date: "2026-07-12", customer: "Rajal & Sons Importers", total: 1890.50, status: "Pending" },
+                { id: "ORD-2026-003", date: "2026-07-14", customer: "Ceylon Premium Brokers Ltd", total: 720.00, status: "Processing" },
+                { id: "ORD-2026-004", date: "2026-07-15", customer: "Osaka Botanical Trading", total: 12400.00, status: "Completed" }
+            ];
+
+            const _MOCK_CUSTOMERS = [
+                { id: "c1", name: "Verdant Spices GmbH", email: "imports@verdantspices.de", phone: "+49 89 234123", address: "Stachus 4, Munich, Germany" },
+                { id: "c2", name: "Rajal & Sons Importers", email: "buying@rajalsons.in", phone: "+91 22 88776611", address: "Nariman Point, Mumbai, India" },
+                { id: "c3", name: "Ceylon Premium Brokers Ltd", email: "info@ceylonbrokers.co.uk", phone: "+44 20 7946 0192", address: "Fenchurch St, London, UK" },
+                { id: "c4", name: "Osaka Botanical Trading", email: "saito@osakabotanical.jp", phone: "+81 6 6203 1122", address: "Chuo-ku, Osaka, Japan" }
+            ];
+
+            const _MOCK_SUPPLIERS = [
+                { id: "s1", name: "Matara Organic Estates", contact: "K.D. Silva", phone: "+94 41 222 3344", material: "Raw Alba Quills" },
+                { id: "s2", name: "Balangoda Bark Cultivators", contact: "M. Bandara", phone: "+94 45 489 1212", material: "Rough Cinnamon Bark" }
+            ];
+
+            const _MOCK_EMPLOYEES = [
+                { id: "e1", name: "Anura Jayasekara", role: "Warehouse Operations Supervisor", division: "Logistics Fulfillment", salary: "Rs. 95,000" },
+                { id: "e2", name: "Priyanthi Silva", role: "Quality Assurance Assorter", division: "Sorting & Grading", salary: "Rs. 78,000" }
+            ];
+
+            const _MOCK_EXPENSES = [
+                { id: "ex1", date: "2026-07-02", description: "Fulfillment Container Freight Charges", category: "Logistics Shipping", amount: 1450.00 },
+                { id: "ex2", date: "2026-07-05", description: "Matara Estate Raw Crop Purchase", category: "Raw Materials Procurement", amount: 3200.00 },
+                { id: "ex3", date: "2026-07-08", description: "Drying Facility Electricity Utility Bill", category: "Facility Overhead & Utilities", amount: 480.00 }
+            ];
+
+            const _DEFAULT_SETTINGS = {
+                businessName: "CEYNOLA",
+                logoCode: "〜",
+                currency: "USD",
+                taxRate: 5.00,
+                language: "en"
+            };
+
+            let state = {
+                products: [],
+                orders: [],
+                customers: [],
+                suppliers: [],
+                employees: [],
+                expenses: [],
+                settings: {}
+            };
+
+            const UI_CONFIG = {
+                pageSize: 5,
+                gridState: {
+                    products: { page: 1, search: "", filter: "", sortField: "name", sortOrder: "asc" },
+                    orders: { page: 1, search: "", filter: "", sortField: "date", sortOrder: "desc" },
+                    customers: { page: 1, search: "", filter: "", sortField: "name", sortOrder: "asc" },
+                    suppliers: { page: 1, search: "", filter: "", sortField: "name", sortOrder: "asc" },
+                    employees: { page: 1, search: "", filter: "", sortField: "name", sortOrder: "asc" },
+                    expenses: { page: 1, search: "", filter: "", sortField: "date", sortOrder: "desc" },
+                    inventory: { page: 1, search: "", filter: "", sortField: "name", sortOrder: "asc" }
+                },
+                charts: { financials: null, categories: null }
+            };
+
+            // ================= PERSISTENT REUSABLE STORAGE ENGINE =================
+            const storageEngine = {
+                init() {
+                    try {
+                        state.settings = this.fetch('cy_settings', _DEFAULT_SETTINGS);
+                        state.products = this.fetch('cy_products', _MOCK_PRODUCTS);
+                        state.orders = this.fetch('cy_orders', _MOCK_ORDERS);
+                        state.customers = this.fetch('cy_customers', _MOCK_CUSTOMERS);
+                        state.suppliers = this.fetch('cy_suppliers', _MOCK_SUPPLIERS);
+                        state.employees = this.fetch('cy_employees', _MOCK_EMPLOYEES);
+                        state.expenses = this.fetch('cy_expenses', _MOCK_EXPENSES);
+                        this.syncAll();
+                    } catch(e) {
+                        console.error("Local Storage Initialization Engine Disrupted: ", e);
+                    }
+                },
+                fetch(key, fallback) {
+                    const resource = localStorage.getItem(key);
+                    if (!resource) {
+                        localStorage.setItem(key, JSON.stringify(fallback));
+                        return fallback;
+                    }
+                    return JSON.parse(resource);
+                },
+                commit(key, data) {
+                    localStorage.setItem(key, JSON.stringify(data));
+                },
+                syncAll() {
+                    this.commit('cy_settings', state.settings);
+                    this.commit('cy_products', state.products);
+                    this.commit('cy_orders', state.orders);
+                    this.commit('cy_customers', state.customers);
+                    this.commit('cy_suppliers', state.suppliers);
+                    this.commit('cy_employees', state.employees);
+                    this.commit('cy_expenses', state.expenses);
+                },
+                backupSystemJSON() {
+                    const bundle = {
+                        version: "2026.1.1",
+                        timestamp: new Date().toISOString(),
+                        database: state
+                    };
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(bundle, null, 2));
+                    const dlAnchorNode = document.createElement('a');
+                    dlAnchorNode.setAttribute("href", dataStr);
+                    dlAnchorNode.setAttribute("download", `ceynola_backup_${new Date().toLocaleDateString().replace(/\//g,'-')}.json`);
+                    document.body.appendChild(dlAnchorNode);
+                    dlAnchorNode.click();
+                    dlAnchorNode.remove();
+                    uiEngine.toast("Global backup dataset downloaded successfully.");
+                },
+                restoreSystemJSON(event) {
+                    const input = event.target;
+                    if (!input.files || input.files.length === 0) return;
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        try {
+                            const parsed = JSON.parse(reader.result);
+                            if (parsed.database) {
+                                state = parsed.database;
+                                this.syncAll();
+                                uiEngine.toast("Master data matrix restored. Re-bootstrapping views.");
+                                setTimeout(() => location.reload(), 1000);
+                            } else {
+                                alert("Invalid dataset signature format rejected.");
+                            }
+                        } catch(err) {
+                            alert("Failure executing JSON structural mapping parsing.");
+                        }
+                    };
+                    reader.readAsText(input.files[0]);
+                },
+                wipeAllDataReset() {
+                    if (confirm("Dangerous System Alert: Permanently delete all system operational data settings maps?")) {
+                        localStorage.clear();
+                        uiEngine.toast("Cold wiping client database system execution completed.");
+                        location.reload();
+                    }
+                }
+            };
+
+            // ================= LOGICAL OPERATIONS DYNAMIC ENGINE =================
+            const dataEngine = {
+                saveRecord(module, record) {
+                    const list = state[module];
+                    if (!list) return;
+
+                    if (record.id) {
+                        const index = list.findIndex(item => item.id === record.id);
+                        if (index !== -1) list[index] = record;
+                    } else {
+                        record.id = module.substring(0,2) + "_" + Math.random().toString(36).substr(2, 9);
+                        list.push(record);
+                    }
+                    
+                    if (module === 'products') {
+                        record.stock = parseInt(record.stock) || 0;
+                        record.costPrice = parseFloat(record.costPrice) || 0;
+                        record.sellingPrice = parseFloat(record.sellingPrice) || 0;
+                        record.status = record.stock <= 0 ? "Out of Stock" : "Active";
+                    }
+                    if (module === 'orders') {
+                        record.total = parseFloat(record.total) || 0;
+                    }
+                    if (module === 'expenses') {
+                        record.amount = parseFloat(record.amount) || 0;
+                    }
+
+                    storageEngine.syncAll();
+                    uiEngine.toast(`Record item successfully saved into ${module}.`);
+                    uiEngine.refreshApp();
+                },
+                deleteRecord(module, id) {
+                    const list = state[module];
+                    if (!list) return;
+                    state[module] = list.filter(item => item.id !== id);
+                    storageEngine.syncAll();
+                    uiEngine.toast("Target item record removed from live state registry.");
+                    uiEngine.refreshApp();
+                },
+                processQueryGrid(module) {
+                    let records = [];
+                    if (module === 'inventory') {
+                        records = state.products.map(p => ({
+                            id: p.id,
+                            sku: p.sku,
+                            name: p.name,
+                            warehouse: "Main Warehouse Colombo",
+                            stock: p.stock,
+                            minThreshold: 20,
+                            status: p.stock <= 20 ? "Low" : "Normal"
+                        }));
+                    } else {
+                        records = [...state[module]];
+                    }
+
+                    const config = UI_CONFIG.gridState[module];
+
+                    if (config.search.trim() !== "") {
+                        const query = config.search.toLowerCase();
+                        records = records.filter(item => {
+                            return Object.values(item).some(val => 
+                                String(val).toLowerCase().includes(query)
+                            );
+                        });
+                    }
+
+                    if (config.filter !== "") {
+                        if (module === 'products') {
+                            records = records.filter(p => p.category === config.filter);
+                        } else if (module === 'orders') {
+                            records = records.filter(o => o.status === config.filter);
+                        } else if (module === 'expenses') {
+                            records = records.filter(e => e.category === config.filter);
+                        } else if (module === 'inventory') {
+                            records = records.filter(i => i.status === config.filter);
+                        }
+                    }
+
+                    if (config.sortField) {
+                        records.sort((a, b) => {
+                            let fieldA = a[config.sortField];
+                            let fieldB = b[config.sortField];
+                            
+                            if (typeof fieldA === 'string') {
+                                return config.sortOrder === 'asc' 
+                                    ? fieldA.localeCompare(fieldB) 
+                                    : fieldB.localeCompare(fieldA);
+                            } else {
+                                return config.sortOrder === 'asc' ? fieldA - fieldB : fieldB - fieldA;
+                            }
+                        });
+                    }
+
+                    const count = records.length;
+                    const totalPages = Math.ceil(count / UI_CONFIG.pageSize) || 1;
+                    if (config.page > totalPages) config.page = totalPages;
+
+                    const offset = (config.page - 1) * UI_CONFIG.pageSize;
+                    const sliced = records.slice(offset, offset + UI_CONFIG.pageSize);
+
+                    return { data: sliced, page: config.page, totalPages: totalPages, totalRecords: count };
+                }
+            };
+
+            // ================= CENTRAL INTERFACE DISPLAY OPERATIONS CORE =================
+            const uiEngine = {
+                toast(message) {
+                    const container = document.getElementById('toast-wrap');
+                    const element = document.createElement('div');
+                    element.className = 'toast';
+                    element.innerHTML = `✓ ${message}`;
+                    container.appendChild(element);
+                    setTimeout(() => element.remove(), 3200);
+                },
+                toggleTheme() {
+                    const current = document.body.getAttribute('data-theme');
+                    const target = current === 'dark' ? 'light' : 'dark';
+                    document.body.setAttribute('data-theme', target);
+                    document.getElementById('theme-knob').textContent = target === 'dark' ? '☀' : '☾';
+                    this.buildCharts();
+                },
+                switchTab(tabId) {
+                    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                    
+                    const targetNav = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
+                    if (targetNav) targetNav.classList.add('active');
+                    
+                    const targetTab = document.getElementById(`tab-${tabId}`);
+                    if (targetTab) targetTab.classList.add('active');
+
+                    const displayTitle = tabId.charAt(0).toUpperCase() + tabId.slice(1) + " Administration Control Grid";
+                    document.getElementById('page-title-heading').textContent = tabId === 'dashboard' ? 'Dashboard Overview' : displayTitle;
+
+                    this.renderTabGrid(tabId);
+                },
+                formatCurrency(num) {
+                    const symbol = state.settings.currency === 'LKR' ? 'Rs. ' : '$';
+                    return symbol + (parseFloat(num) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                },
+                refreshApp() {
+                    document.getElementById('display-sidebar-title').textContent = state.settings.businessName || "CEYNOLA";
+                    
+                    this.calculateDashboardMetrics();
+                    this.buildCharts();
+
+                    const activeTab = document.querySelector('.tab-content.active');
+                    if (activeTab) {
+                        const id = activeTab.id.replace('tab-', '');
+                        this.renderTabGrid(id);
+                    }
+                },
+                calculateDashboardMetrics() {
+                    const revenue = state.orders.filter(o => o.status === 'Completed').reduce((acc, curr) => acc + curr.total, 0);
+                    const expenses = state.expenses.reduce((acc, curr) => acc + curr.amount, 0);
+                    const profit = revenue - expenses;
+                    const inventoryVal = state.products.reduce((acc, p) => acc + (p.costPrice * p.stock), 0);
+                    const lowStockCount = state.products.filter(p => p.stock <= 20).length;
+                    const pendingOrders = state.orders.filter(o => o.status === 'Pending').length;
+
+                    document.getElementById('stat-revenue').textContent = this.formatCurrency(revenue);
+                    document.getElementById('stat-expenses').textContent = this.formatCurrency(expenses);
+                    document.getElementById('stat-profit').textContent = this.formatCurrency(profit);
+                    document.getElementById('stat-orders').textContent = state.orders.length;
+                    document.getElementById('stat-orders-sub').textContent = `${pendingOrders} system orders processing pipeline queue`;
+                    document.getElementById('stat-inventory-val').textContent = this.formatCurrency(inventoryVal);
+                    document.getElementById('stat-low-stock-count').textContent = `${lowStockCount} resource tracks flagged low stock`;
+                    
+                    if (lowStockCount > 0) {
+                        document.getElementById('stat-low-stock-count').className = "metric-sub text-danger";
+                    } else {
+                        document.getElementById('stat-low-stock-count').className = "metric-sub text-success";
+                    }
+
+                    const sortedRecent = [...state.orders].sort((a,b)=> new Date(b.date) - new Date(a.date)).slice(0, 5);
+                    const tbody = document.getElementById('tbl-recent-orders');
+                    tbody.innerHTML = sortedRecent.map(o => `
+                        <tr>
+                            <td class="font-mono">${o.id}</td>
+                            <td>${o.date}</td>
+                            <td><b>${o.customer}</b></td>
+                            <td class="font-mono">${this.formatCurrency(o.total)}</td>
+                            <td><span class="badge ${o.status==='Completed'?'badge-success':(o.status==='Cancelled'?'badge-danger':'badge-warning')}">${o.status}</span></td>
+                        </tr>
+                    `).join('');
+                },
+                buildCharts() {
+                    const isDark = document.body.getAttribute('data-theme') === 'dark';
+                    const textColor = isDark ? '#A69788' : '#70655B';
+                    const gridColor = isDark ? '#2D2017' : '#E6DFD5';
+
+                    const ctxFin = document.getElementById('chart-financials');
+                    if (ctxFin) {
+                        if (UI_CONFIG.charts.financials) UI_CONFIG.charts.financials.destroy();
+                        UI_CONFIG.charts.financials = new Chart(ctxFin, {
+                            type: 'line',
+                            data: {
+                                labels: ['May', 'Jun', 'Jul Current'],
+                                datasets: [
+                                    { label: 'Gross Revenue', data: [8500, 14000, state.orders.filter(o=>o.status==='Completed').reduce((a,c)=>a+c.total,0)], borderColor: '#C29B74', tension: 0.2, fill: false },
+                                    { label: 'Operational Expenses', data: [3100, 4900, state.expenses.reduce((a,c)=>a+c.amount,0)], borderColor: '#9E4733', tension: 0.2, fill: false }
+                                ]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: false,
+                                plugins: { legend: { labels: { color: textColor } } },
+                                scales: { x: { grid: { color: gridColor }, ticks: { color: textColor } }, y: { grid: { color: gridColor }, ticks: { color: textColor } } }
+                            }
+                        });
+                    }
+
+                    const ctxCat = document.getElementById('chart-categories');
+                    if (ctxCat) {
+                        if (UI_CONFIG.charts.categories) UI_CONFIG.charts.categories.destroy();
+                        const catMap = {};
+                        state.products.forEach(p => { catMap[p.category] = (catMap[p.category] || 0) + p.stock; });
+                        
+                        UI_CONFIG.charts.categories = new Chart(ctxCat, {
+                            type: 'doughnut',
+                            data: {
+                                labels: Object.keys(catMap).length ? Object.keys(catMap) : ['None Loaded'],
+                                datasets: [{
+                                    data: Object.values(catMap).length ? Object.values(catMap) : [1],
+                                    backgroundColor: ['#1B120C', '#3D2B1F', '#5C4033', '#C29B74', '#D4B996', '#EADBC8']
+                                }]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: false,
+                                plugins: { legend: { position: 'bottom', labels: { color: textColor } } }
+                            }
+                        });
+                    }
+                },
+                renderTabGrid(module) {
+                    const tbody = document.getElementById(`tbl-${module}`);
+                    if (!tbody) return;
+
+                    const gridData = dataEngine.processQueryGrid(module);
+                    
+                    if (module === 'products') {
+                        tbody.innerHTML = gridData.data.map(p => `
+                            <tr>
+                                <td><span class="sku-tag">${p.sku}</span></td>
+                                <td><b>${p.name}</b></td>
+                                <td><span class="text-muted">${p.category}</span></td>
+                                <td class="font-mono">${this.formatCurrency(p.costPrice)}</td>
+                                <td class="font-mono">${this.formatCurrency(p.sellingPrice)}</td>
+                                <td class="font-mono ${p.stock <= 20 ? 'text-danger font-weight-bold' : ''}">${p.stock} units</td>
+                                <td><span class="badge ${p.stock > 0 ? 'badge-success' : 'badge-danger'}">${p.status}</span></td>
+                                <td class="text-right">
+                                    <button class="btn-icon" onclick="App.modals.openEdit('products', '${p.id}')" title="Edit Data Asset">✏️</button>
+                                    <button class="btn-icon" style="color:var(--danger)" onclick="App.modals.confirmDelete('products', '${p.id}')" title="Wipe Asset Record">🗑️</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+
+                    if (module === 'orders') {
+                        tbody.innerHTML = gridData.data.map(o => `
+                            <tr>
+                                <td class="font-mono">${o.id}</td>
+                                <td>${o.date}</td>
+                                <td><b>${o.customer}</b></td>
+                                <td class="font-mono">${this.formatCurrency(o.total)}</td>
+                                <td><span class="badge ${o.status==='Completed'?'badge-success':(o.status==='Cancelled'?'badge-danger':'badge-warning')}">${o.status}</span></td>
+                                <td class="text-right">
+                                    <button class="btn-icon" onclick="App.modals.openEdit('orders', '${o.id}')">✏️</button>
+                                    <button class="btn-icon" style="color:var(--danger)" onclick="App.modals.confirmDelete('orders', '${o.id}')">🗑️</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+
+                    if (module === 'inventory') {
+                        tbody.innerHTML = gridData.data.map(i => `
+                            <tr>
+                                <td><span class="sku-tag">${i.sku}</span></td>
+                                <td><b>${i.name}</b></td>
+                                <td><span class="text-muted">${i.warehouse}</span></td>
+                                <td class="font-mono ${i.stock <= i.minThreshold ? 'text-danger' : 'text-success'}">${i.stock} items</td>
+                                <td class="font-mono">${i.minThreshold}</td>
+                                <td><span class="badge ${i.stock <= i.minThreshold ? 'badge-danger' : 'badge-success'}">${i.status}</span></td>
+                                <td class="text-right">
+                                    <button class="btn btn-secondary" style="padding: 4px 10px; font-size:12px;" onclick="App.modals.openAdjustStock('${i.id}')">Adjust Level</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+
+                    if (module === 'customers') {
+                        tbody.innerHTML = gridData.data.map(c => `
+                            <tr>
+                                <td><b>${c.name}</b></td>
+                                <td class="font-mono">${c.email}</td>
+                                <td>${c.phone}</td>
+                                <td><span class="text-muted" style="font-size:12px;">${c.address}</span></td>
+                                <td class="text-right">
+                                    <button class="btn-icon" onclick="App.modals.openEdit('customers', '${c.id}')">✏️</button>
+                                    <button class="btn-icon" style="color:var(--danger)" onclick="App.modals.confirmDelete('customers', '${c.id}')">🗑️</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+
+                    if (module === 'suppliers') {
+                        tbody.innerHTML = gridData.data.map(s => `
+                            <tr>
+                                <td><b>${s.name}</b></td>
+                                <td>${s.contact}</td>
+                                <td class="font-mono">${s.phone}</td>
+                                <td><span class="badge badge-info">${s.material}</span></td>
+                                <td class="text-right">
+                                    <button class="btn-icon" onclick="App.modals.openEdit('suppliers', '${s.id}')">✏️</button>
+                                    <button class="btn-icon" style="color:var(--danger)" onclick="App.modals.confirmDelete('suppliers', '${s.id}')">🗑️</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+
+                    if (module === 'employees') {
+                        tbody.innerHTML = gridData.data.map(e => `
+                            <tr>
+                                <td><b>${e.name}</b></td>
+                                <td><span class="text-muted">${e.role}</span></td>
+                                <td>${e.division}</td>
+                                <td class="font-mono">${e.salary}</td>
+                                <td class="text-right">
+                                    <button class="btn-icon" onclick="App.modals.openEdit('employees', '${e.id}')">✏️</button>
+                                    <button class="btn-icon" style="color:var(--danger)" onclick="App.modals.confirmDelete('employees', '${e.id}')">🗑️</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+
+                    if (module === 'expenses') {
+                        tbody.innerHTML = gridData.data.map(ex => `
+                            <tr>
+                                <td>${ex.date}</td>
+                                <td><b>${ex.description}</b></td>
+                                <td><span class="text-muted" style="font-size:12px;">${ex.category}</span></td>
+                                <td class="font-mono text-danger">${this.formatCurrency(ex.amount)}</td>
+                                <td class="text-right">
+                                    <button class="btn-icon" onclick="App.modals.openEdit('expenses', '${ex.id}')">✏️</button>
+                                    <button class="btn-icon" style="color:var(--danger)" onclick="App.modals.confirmDelete('expenses', '${ex.id}')">🗑️</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+
+                    this.renderPaginationControls(module, gridData);
+                },
+                renderPaginationControls(module, gridData) {
+                    const pager = document.getElementById(`pager-${module}`);
+                    if (!pager) return;
+
+                    let html = `<div>Showing ${gridData.data.length} of ${gridData.totalRecords} entries registered</div>`;
+                    html += `<div class="pagination-pages">`;
+                    
+                    for(let i = 1; i <= gridData.totalPages; i++) {
+                        html += `<span class="page-node ${gridData.page === i ? 'active' : ''}" onclick="App.dataGrid.setPage('${module}', ${i})">${i}</span>`;
+                    }
+                    html += `</div>`;
+                    pager.innerHTML = html;
+                }
+            };
+
+            // ================= SEAMLESS SEARCH SORT DATA CONTROL INTERFACE =================
+            const dataGridOperations = {
+                handleSearch(module) {
+                    const val = document.getElementById(`search-${module}`).value;
+                    UI_CONFIG.gridState[module].search = val;
+                    UI_CONFIG.gridState[module].page = 1;
+                    uiEngine.renderTabGrid(module);
+                },
+                handleFilter(module) {
+                    const filterEl = document.getElementById(`filter-${module}-cat`) || document.getElementById(`filter-${module}-status`);
+                    if (filterEl) {
+                        UI_CONFIG.gridState[module].filter = filterEl.value;
+                        UI_CONFIG.gridState[module].page = 1;
+                        uiEngine.renderTabGrid(module);
+                    }
+                },
+                handleSort(module, field) {
+                    const stateObj = UI_CONFIG.gridState[module];
+                    if (stateObj.sortField === field) {
+                        stateObj.sortOrder = stateObj.sortOrder === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        stateObj.sortField = field;
+                        stateObj.sortOrder = 'asc';
+                    }
+                    uiEngine.renderTabGrid(module);
+                },
+                setPage(module, pageNum) {
+                    UI_CONFIG.gridState[module].page = pageNum;
+                    uiEngine.renderTabGrid(module);
+                },
+                exportCSV(module) {
+                    const dataset = state[module];
+                    if (!dataset || !dataset.length) {
+                        uiEngine.toast("Empty records engine block pipeline execution cancelled.");
+                        return;
+                    }
+                    const headers = Object.keys(dataset[0]).join(",");
+                    const lines = dataset.map(row => 
+                        Object.values(row).map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")
+                    );
+                    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...lines].join("\n");
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", `ceynola_export_${module}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    uiEngine.toast("CSV file structured extraction finalized.");
+                }
+            };
+
+            // ================= COMPREHENSIVE MODAL FORMS LAYER IMPLEMENTATION =================
+            const modalSystem = {
+                open(title, htmlBody) {
+                    document.getElementById('modal-title-txt').textContent = title;
+                    document.getElementById('modal-body-content').innerHTML = htmlBody;
+                    document.getElementById('modal-container').classList.add('show');
+                },
+                close() {
+                    document.getElementById('modal-container').classList.remove('show');
+                },
+                openAdd(module) {
+                    const formHTML = this.getFormHTMLTemplate(module);
+                    this.open(`Create New ${module.substring(0, module.length - 1)} Entry`, formHTML);
+                },
+                openEdit(module, id) {
+                    const item = state[module].find(x => x.id === id);
+                    if (!item) return;
+                    const formHTML = this.getFormHTMLTemplate(module, item);
+                    this.open(`Modify Existing ${module.substring(0, module.length - 1)} Properties`, formHTML);
+                },
+                confirmDelete(module, id) {
+                    const confirmationHTML = `
+                        <div style="padding: 12px 0;">
+                            <p style="margin-bottom:24px; font-size:14px; color:var(--text-muted)">
+                                Are you absolutely certain you want to destroy this entry? This process cannot be reversed.
+                            </p>
+                            <div class="action-group" style="justify-content: flex-end;">
+                                <button class="btn btn-secondary" onclick="App.modals.close()">Cancel</button>
+                                <button class="btn btn-primary" style="background-color:var(--danger)" onclick="App.dataEngine.deleteRecord('${module}','${id}'); App.modals.close();">Confirm Wipe Asset</button>
+                            </div>
+                        </div>
+                    `;
+                    this.open("Critical Authorization Destruction Warning", confirmationHTML);
+                },
+                openAdjustStock(prodId) {
+                    const prod = state.products.find(p => p.id === prodId);
+                    if (!prod) return;
+                    const html = `
+                        <form onsubmit="App.modals.executeStockAdjustment(event, '${prod.id}')">
+                            <div class="form-group">
+                                <label>Item Track Title</label>
+                                <input type="text" value="${prod.name}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Absolute Stock Quantity Configuration Count</label>
+                                <input type="number" id="adj-stock-qty" value="${prod.stock}" required min="0">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width:100%">Commit Inventory Parameters</button>
+                        </form>
+                    `;
+                    this.open("Fulfillment Inventory Adjustment Framework", html);
+                },
+                executeStockAdjustment(event, id) {
+                    event.preventDefault();
+                    const qty = parseInt(document.getElementById('adj-stock-qty').value) || 0;
+                    const prod = state.products.find(p => p.id === id);
+                    if (prod) {
+                        prod.stock = qty;
+                        prod.status = prod.stock <= 0 ? "Out of Stock" : "Active";
+                        storageEngine.syncAll();
+                        uiEngine.toast("Stock quantities matrix altered.");
+                        this.close();
+                        uiEngine.refreshApp();
+                    }
+                },
+                processSubmitForm(event, module, existingId) {
+                    event.preventDefault();
+                    const fd = new FormData(event.target);
+                    const record = {};
+                    if (existingId && existingId !== 'undefined') record.id = existingId;
+                    
+                    fd.forEach((value, key) => {
+                        record[key] = value;
+                    });
+
+                    dataEngine.saveRecord(module, record);
+                    this.close();
+                },
+                getFormHTMLTemplate(module, item = null) {
+                    const isEdit = !!item;
+                    const idVal = isEdit ? item.id : '';
+                    
+                    let fields = '';
+
+                    if (module === 'products') {
+                        fields = `
+                            <div class="grid-2">
+                                <div class="form-group"><label>Unique SKU Code</label><input type="text" name="sku" value="${isEdit?item.sku:''}" required></div>
+                                <div class="form-group"><label>Category Variant Classification</label>
+                                    <select name="category">
+                                        <option ${isEdit && item.category==='Alba Cinnamon'?'selected':''}>Alba Cinnamon</option>
+                                        <option ${isEdit && item.category==='Continental Cinnamon'?'selected':''}>Continental Cinnamon</option>
+                                        <option ${isEdit && item.category==='Mexican Cinnamon'?'selected':''}>Mexican Cinnamon</option>
+                                        <option ${isEdit && item.category==='Cinnamon Oil'?'selected':''}>Cinnamon Oil</option>
+                                        <option ${isEdit && item.category==='Ground Powder'?'selected':''}>Ground Powder</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group"><label>Product Title Heading</label><input type="text" name="name" value="${isEdit?item.name:''}" required></div>
+                            <div class="grid-2">
+                                <div class="form-group"><label>Base Cost Price</label><input type="number" step="0.01" name="costPrice" value="${isEdit?item.costPrice:''}" required></div>
+                                <div class="form-group"><label>Global Target Selling Price</label><input type="number" step="0.01" name="sellingPrice" value="${isEdit?item.sellingPrice:''}" required></div>
+                            </div>
+                            <div class="form-group"><label>Live Volume Quantity Stock Level</label><input type="number" name="stock" value="${isEdit?item.stock:''}" ${isEdit?'readonly':''} required></div>
+                        `;
+                    }
+                    
+                    if (module === 'orders') {
+                        fields = `
+                            <div class="form-group"><label>Order Reference ID Mapping</label><input type="text" name="id" value="${isEdit?item.id:'ORD-2026-'+Math.floor(Math.random()*900+100)}" readonly></div>
+                            <div class="form-group"><label>Target Registered Client Business Name</label>
+                                <select name="customer">
+                                    ${state.customers.map(c => `<option ${isEdit && item.customer===c.name?'selected':''}>${c.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group"><label>Date Transacted</label><input type="date" name="date" value="${isEdit?item.date:new Date().toISOString().split('T')[0]}" required></div>
+                                <div class="form-group"><label>Pipeline Processing Status</label>
+                                    <select name="status">
+                                        <option ${isEdit && item.status==='Pending'?'selected':''}>Pending</option>
+                                        <option ${isEdit && item.status==='Processing'?'selected':''}>Processing</option>
+                                        <option ${isEdit && item.status==='Completed'?'selected':''}>Completed</option>
+                                        <option ${isEdit && item.status==='Cancelled'?'selected':''}>Cancelled</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group"><label>Total Gross Invoiced Financial Value</label><input type="number" step="0.01" name="total" value="${isEdit?item.total:''}" required></div>
+                        `;
+                    }
+
+                    if (module === 'customers') {
+                        fields = `
+                            <div class="form-group"><label>Client Full Identity Name</label><input type="text" name="name" value="${isEdit?item.name:''}" required></div>
+                            <div class="form-group"><label>Corporate Inter-Email Channel</label><input type="email" name="email" value="${isEdit?item.email:''}" required></div>
+                            <div class="form-group"><label>Phone Routing Protocol Line</label><input type="text" name="phone" value="${isEdit?item.phone:''}" required></div>
+                            <div class="form-group"><label>Physical Distribution Destination Address</label><textarea name="address" required>${isEdit?item.address:''}</textarea></div>
+                        `;
+                    }
+
+                    if (module === 'suppliers') {
+                        fields = `
+                            <div class="form-group"><label>Supplier Estate Production Corporate Name</label><input type="text" name="name" value="${isEdit?item.name:''}" required></div>
+                            <div class="form-group"><label>Contact Person Representative</label><input type="text" name="contact" value="${isEdit?item.contact:''}" required></div>
+                            <div class="form-group"><label>Direct Telephone Connection Line</label><input type="text" name="phone" value="${isEdit?item.phone:''}" required></div>
+                            <div class="form-group"><label>Raw Material Commodity Allocation Type</label><input type="text" name="material" value="${isEdit?item.material:''}" placeholder="e.g. Raw Alba Quills" required></div>
+                        `;
+                    }
+
+                    if (module === 'employees') {
+                        fields = `
+                            <div class="form-group"><label>Staff Member Full Legal Name</label><input type="text" name="name" value="${isEdit?item.name:''}" required></div>
+                            <div class="form-group"><label>Designated Operations Role Job Title</label><input type="text" name="role" value="${isEdit?item.role:''}" required></div>
+                            <div class="form-group"><label>Organizational Structural Division</label><input type="text" name="division" value="${isEdit?item.division:''}" required></div>
+                            <div class="form-group"><label>Agreed Compensation Wage Scale</label><input type="text" name="salary" value="${isEdit?item.salary:''}" placeholder="e.g. Rs. 85,000" required></div>
+                        `;
+                    }
+
+                    if (module === 'expenses') {
+                        fields = `
+                            <div class="form-group"><label>Date Logged</label><input type="date" name="date" value="${isEdit?item.date:new Date().toISOString().split('T')[0]}" required></div>
+                            <div class="form-group"><label>Ledger Account Distribution Category</label>
+                                <select name="category">
+                                    <option ${isEdit && item.category==='Logistics Shipping'?'selected':''}>Logistics Shipping</option>
+                                    <option ${isEdit && item.category==='Raw Materials Procurement'?'selected':''}>Raw Materials Procurement</option>
+                                    <option ${isEdit && item.category==='Facility Overhead & Utilities'?'selected':''}>Facility Overhead & Utilities</option>
+                                    <option ${isEdit && item.category==='Customs Tariffs & Duties'?'selected':''}>Customs Tariffs & Duties</option>
+                                    <option ${isEdit && item.category==='Marketing Branding'?'selected':''}>Marketing Branding</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label>Expense Metric Description Annotation</label><input type="text" name="description" value="${isEdit?item.description:''}" required></div>
+                            <div class="form-group"><label>Absolute Financial Outlay Amount</label><input type="number" step="0.01" name="amount" value="${isEdit?item.amount:''}" required></div>
+                        `;
+                    }
+
+                    return `
+                        <form onsubmit="App.modals.processSubmitForm(event, '${module}', '${idVal}')">
+                            ${fields}
+                            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Save Entity Record Changes</button>
+                        </form>
+                    `;
+                }
+            };
+
+            // ================= INTEGRATED GLOBAL SETTINGS ENGINE MODULE =================
+            const settingsSystem = {
+                populateForm() {
+                    document.getElementById('set-biz-name').value = state.settings.businessName;
+                    document.getElementById('set-biz-logo').value = state.settings.logoCode;
+                    document.getElementById('set-currency').value = state.settings.currency;
+                    document.getElementById('set-tax').value = state.settings.taxRate;
+                    document.getElementById('set-lang').value = state.settings.language;
+                },
+                saveForm(event) {
+                    event.preventDefault();
+                    state.settings.businessName = document.getElementById('set-biz-name').value;
+                    state.settings.logoCode = document.getElementById('set-biz-logo').value;
+                    state.settings.currency = document.getElementById('set-currency').value;
+                    state.settings.taxRate = parseFloat(document.getElementById('set-tax').value) || 0;
+                    state.settings.language = document.getElementById('set-lang').value;
+                    
+                    storageEngine.syncAll();
+                    uiEngine.toast("Configuration variables safely serialized to persistent registry storage maps.");
+                    uiEngine.refreshApp();
+                }
+            };
+
+            // ================= SECURITY AUTH INTEGRATION WRAPPER SIMULATION =================
+            const authenticationLayer = {
+                login() {
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                    uiEngine.toast("Welcome back, Administrator Perera");
+                    
+                    uiEngine.refreshApp();
+                    
+                    setInterval(() => {
+                        const clockEl = document.getElementById('live-clock');
+                        if (clockEl) clockEl.textContent = new Date().toLocaleTimeString();
+                    }, 1000);
+                },
+                logout() {
+                    document.getElementById('app').style.display = 'none';
+                    document.getElementById('login-screen').style.display = 'flex';
+                }
+            };
+
+            // ================= CLIENT INFRASTRUCTURE ENTRY INTERFACE BOOTSTRAPPER =================
+            const initializeApplicationSubsystem = () => {
+                window.addEventListener('DOMContentLoaded', () => {
+                    storageEngine.init();
+                    settingsSystem.populateForm();
+
+                    const containerModal = document.getElementById('modal-container');
+                    containerModal.addEventListener('click', (e) => {
+                        if(e.target === containerModal) modalSystem.close();
+                    });
+                });
+            };
+
+            initializeApplicationSubsystem();
+
+            return {
+                auth: authenticationLayer,
+                ui: uiEngine,
+                dataGrid: dataGridOperations,
+                modals: modalSystem,
+                dataEngine: dataEngine,
+                storage: storageEngine,
+                settings: settingsSystem
+            };
+
+        })();
+    </script>
+</body>
+</html>
