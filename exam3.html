@@ -314,7 +314,6 @@
             margin-bottom: 32px;
         }
 
-        /* 💡 BUG FIX: Changed from min-height to fixed height + flexbox column layout */
         .chart-container-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -332,7 +331,6 @@
             font-size: 16px;
         }
 
-        /* 💡 BUG FIX: Added stable relative container to prevent ChartJS infinite layout breakdowns */
         .chart-canvas-wrapper {
             position: relative;
             flex-grow: 1;
@@ -379,6 +377,8 @@
             border: 1px solid var(--border-color);
             border-radius: 12px; 
             overflow: hidden; 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch;
             box-shadow: var(--shadow-sm);
         }
         .table {
@@ -396,12 +396,14 @@
             text-transform: uppercase; 
             font-size: 11px; 
             letter-spacing: 0.5px;
+            white-space: nowrap;
         }
         .table td {
             padding: 16px 24px; 
             border-bottom: 1px solid var(--border-color);
             color: var(--text-main); 
             vertical-align: middle;
+            white-space: nowrap; 
         }
         .table tbody tr:last-child td { border-bottom: none; }
         .table tbody tr:hover td { background-color: rgba(194,155,116,0.02); }
@@ -604,12 +606,108 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
+        /* ================== ADVANCED RESPONSIVE MEDIA ARCHITECTURE ================== */
         @media (max-width: 1024px) {
             .charts-row { grid-template-columns: 1fr; }
-            .sidebar { width: 80px; }
-            .sidebar-brand-name, .sidebar-brand-sub, .user-info, .btn-logout { display: none; }
-            .nav-item span { margin-right: 0; font-size: 20px; }
-            .nav-item { justify-content: center; padding: 12px; }
+            .sidebar { width: 70px; }
+            .sidebar-brand-name, .sidebar-brand-sub, .user-info, .sidebar-footer { display: none; }
+            .sidebar-header { padding: 20px 5px; text-align: center; }
+            .brand-group { justify-content: center; }
+            .nav-item { justify-content: center; padding: 14px; font-size: 0; } 
+            .nav-item span { font-size: 22px; margin: 0; opacity: 1; }
+            .topbar { padding: 0 24px; }
+            .content-body { padding: 24px; }
+        }
+
+        @media (max-width: 768px) {
+            .layout-container { flex-direction: column; }
+            .sidebar { 
+                width: 100%; 
+                height: auto; 
+                position: sticky; 
+                top: 0; 
+                border-right: none; 
+                border-bottom: 1px solid rgba(194,155,116,0.1);
+                background-color: var(--sidebar-bg);
+            }
+            .sidebar-header { display: none; } 
+            .sidebar-nav { 
+                flex-direction: row; 
+                overflow-x: auto; 
+                padding: 10px; 
+                gap: 8px;
+                scroll-behavior: smooth;
+                -webkit-overflow-scrolling: touch;
+            }
+            .nav-item { 
+                padding: 10px 16px; 
+                font-size: 13px !important; 
+                white-space: nowrap; 
+                border-radius: 6px;
+            }
+            .nav-item span { font-size: 15px; margin-right: 4px; }
+            
+            .topbar { 
+                position: relative; 
+                height: auto; 
+                padding: 16px; 
+                flex-direction: column; 
+                gap: 12px; 
+                align-items: flex-start; 
+            }
+            .topbar-right { 
+                width: 100%; 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+            }
+            .live-clock { margin-right: 0; }
+
+            .content-body { padding: 16px; }
+            
+            .metrics-grid { 
+                grid-template-columns: 1fr; 
+                gap: 16px; 
+            }
+            .metric-card { padding: 20px; }
+
+            .chart-container-card { height: 320px; padding: 16px; }
+            
+            .section-header { 
+                flex-direction: column; 
+                align-items: stretch; 
+                gap: 12px; 
+            }
+            .action-group { 
+                flex-direction: column; 
+                align-items: stretch; 
+                width: 100%; 
+                gap: 8px;
+            }
+            .search-input, .filter-select, .btn { 
+                width: 100% !important; 
+            }
+            
+            .grid-2 { 
+                grid-template-columns: 1fr; 
+                gap: 0; 
+            }
+            .modal-card { 
+                padding: 24px; 
+                margin: 12px; 
+                max-height: 92vh; 
+                overflow-y: auto; 
+            }
+            .pagination-wrap {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+            .toast-container {
+                left: 20px;
+                right: 20px;
+                bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -626,7 +724,7 @@
             </div>
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" value="••••••••" id="login-pass" readonly>
+                <input type="password" id="login-pass" placeholder="Enter system password">
             </div>
             <button class="btn btn-primary" style="width: 100%; margin-top: 12px;" onclick="App.auth.login()">Access Dashboard</button>
         </div>
@@ -711,7 +809,6 @@
                             </div>
                         </div>
 
-                        <!-- 💡 BUG FIX: Wrapped canvas tags inside chart-canvas-wrapper -->
                         <div class="charts-row">
                             <div class="chart-container-card">
                                 <h3>Financial Performance Trend</h3>
@@ -749,7 +846,6 @@
                         </div>
                     </section>
 
-                    <!-- Other HTML sections remain exactly the same -->
                     <section id="tab-products" class="tab-content">
                         <div class="section-header">
                             <div class="action-group">
@@ -1302,8 +1398,8 @@
                     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
                     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
                     
-                    const targetNav = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
-                    if (targetNav) targetNav.classList.add('active');
+                    const targetNav = document.querySelectorAll(`.nav-item[data-tab="${tabId}"]`);
+                    targetNav.forEach(el => el.classList.add('active'));
                     
                     const targetTab = document.getElementById(`tab-${tabId}`);
                     if (targetTab) targetTab.classList.add('active');
@@ -1318,7 +1414,8 @@
                     return symbol + (parseFloat(num) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 },
                 refreshApp() {
-                    document.getElementById('display-sidebar-title').textContent = state.settings.businessName || "CEYNOLA";
+                    const titleEl = document.getElementById('display-sidebar-title');
+                    if(titleEl) titleEl.textContent = state.settings.businessName || "CEYNOLA";
                     
                     this.calculateDashboardMetrics();
                     this.buildCharts();
@@ -1803,19 +1900,29 @@
                 }
             };
 
-            // ================= SECURITY AUTH INTEGRATION WRAPPER SIMULATION =================
+            // ================= SECURITY AUTH INTEGRATION WRAPPER WITH PASSWORD CHECK =================
             const authenticationLayer = {
                 login() {
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('app').style.display = 'block';
-                    uiEngine.toast("Welcome back, Administrator Perera");
+                    const passwordInput = document.getElementById('login-pass').value;
                     
-                    uiEngine.refreshApp();
-                    
-                    setInterval(() => {
-                        const clockEl = document.getElementById('live-clock');
-                        if (clockEl) clockEl.textContent = new Date().toLocaleTimeString();
-                    }, 1000);
+                    // Password එක නිවැරදිද කියා පරීක්ෂා කිරීම
+                    if (passwordInput === 'ceynolazz123#@') {
+                        document.getElementById('login-screen').style.display = 'none';
+                        document.getElementById('app').style.display = 'block';
+                        uiEngine.toast("Welcome back, Administrator Perera");
+                        
+                        uiEngine.refreshApp();
+                        
+                        setInterval(() => {
+                            const clockEl = document.getElementById('live-clock');
+                            if (clockEl) clockEl.textContent = new Date().toLocaleTimeString();
+                        }, 1000);
+                        
+                        // ආරක්ෂාව සඳහා ඇතුළු වූ පසු password field එක clear කිරීම
+                        document.getElementById('login-pass').value = '';
+                    } else {
+                        alert("Incorrect password! Please try again.");
+                    }
                 },
                 logout() {
                     document.getElementById('app').style.display = 'none';
