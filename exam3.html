@@ -1264,11 +1264,33 @@
                     };
                     reader.readAsText(input.files[0]);
                 },
+                
+                // 💡 UPDATED: Automatically downloads backup first, then counts down 20 seconds before wiping.
                 wipeAllDataReset() {
-                    if (confirm("Dangerous System Alert: Permanently delete all system operational data settings maps?")) {
-                        localStorage.clear();
-                        uiEngine.toast("Cold wiping client database system execution completed.");
-                        location.reload();
+                    if (confirm("Dangerous System Alert: This will automatically download a backup first and then permanently wipe all data in 20 seconds. Proceed?")) {
+                        
+                        // 1. Download Backup first
+                        this.backupSystemJSON();
+                        
+                        // 2. Start countdown alerts
+                        let secondsLeft = 20;
+                        uiEngine.toast(`Backup saved! System will factory reset in ${secondsLeft} seconds...`);
+                        
+                        // Alert at 10 seconds
+                        setTimeout(() => {
+                            uiEngine.toast("Factory reset in 10 seconds... Please do not close the window.");
+                        }, 10000);
+
+                        // Alert at 5 seconds
+                        setTimeout(() => {
+                            uiEngine.toast("Factory reset in 5 seconds!");
+                        }, 15000);
+
+                        // 3. Perform the actual wipe after 20 seconds
+                        setTimeout(() => {
+                            localStorage.clear();
+                            location.reload();
+                        }, 20000);
                     }
                 }
             };
@@ -1905,7 +1927,6 @@
                 login() {
                     const passwordInput = document.getElementById('login-pass').value;
                     
-                    // Password එක නිවැරදිද කියා පරීක්ෂා කිරීම
                     if (passwordInput === 'ceynolazz123#@') {
                         document.getElementById('login-screen').style.display = 'none';
                         document.getElementById('app').style.display = 'block';
@@ -1918,7 +1939,6 @@
                             if (clockEl) clockEl.textContent = new Date().toLocaleTimeString();
                         }, 1000);
                         
-                        // ආරක්ෂාව සඳහා ඇතුළු වූ පසු password field එක clear කිරීම
                         document.getElementById('login-pass').value = '';
                     } else {
                         alert("Incorrect password! Please try again.");
